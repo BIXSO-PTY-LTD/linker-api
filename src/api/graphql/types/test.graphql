@@ -1,0 +1,26 @@
+type Test {
+    id: String
+    name: String
+}
+
+input InputGet {
+    id: String!
+}
+
+input InputSet {
+    name: String!
+}
+
+type TestResponse {
+    success: Boolean!
+    message: String
+    result: Test
+}
+
+type Query {
+    getTest(test: InputGet!): TestResponse
+}
+
+type Mutation {
+    setTest(test: InputSet!): TestResponse!
+}

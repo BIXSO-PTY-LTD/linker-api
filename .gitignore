@@ -5,6 +5,3 @@
 /uploads
 .DS_Store
 .env
-
-# Sentry Auth Token
-.sentryclirc

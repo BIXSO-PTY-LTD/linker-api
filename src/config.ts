@@ -20,7 +20,6 @@ const config: any = {
     },
     WS_PORT: process.env.WS_PORT || 7999,
     SECRET: process.env.SECRET || 'ixN0-Vqnj9JAQzE(u*Z59xj#8ZKujr%w', // 32 chars required
-    EMAIL_STAGING_SEND_TO: process.env.EMAIL_STAGING_SEND_TO,
     UPLOAD_FOLDER: process.env.UPLOAD_FOLDER || 'bixso',
 };
 

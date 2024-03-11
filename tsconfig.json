@@ -13,10 +13,15 @@
         "noImplicitAny": false,
         /* Module Resolution Options */
         "moduleResolution": "node",
-        "baseUrl": "./src",
+        "baseUrl": "./",
         "paths": {
-            "#config": ["config"],
-            "#api/*": ["api/*"]
+            "cyberskill/*": ["node_modules/cyberskill/dist/*"],
+            "#api/*": ["src/api/*"],
+            "#controllers": ["src/controllers"],
+            "#models": ["src/models"],
+            "#shared/*": ["src/shared/*"],
+            "#typescript": ["src/typescript"],
+            "#config": ["src/config"]
         },
         "esModuleInterop": true,
         /* Advanced Options */
