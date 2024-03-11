@@ -6,7 +6,7 @@
     "scripts": {
         "build": "npm-run-all clean tsc tsc:alias copy:secret copy:graphql",
         "clean": "rimraf build/*",
-        "copy:graphql": "ncp src/types build/types",
+        "copy:graphql": "ncp src/api/graphql/types build/api/graphql/types",
         "copy:secret": "ncp src/secret build/secret",
         "dev": "cross-env NODE_ENV=development ts-node-dev --respawn --transpile-only --notify -r tsconfig-paths/register ./src/server.ts",
         "lint:check": "tsc && npm run lint:check:eslint && npm run lint:check:prettier",
@@ -22,12 +22,11 @@
     },
     "dependencies": {
         "@apollo/server": "4.10.1",
-        "@apollo/server-plugin-landing-page-graphql-playground": "4.0.0",
         "@apollo/utils.keyvadapter": "3.1.0",
         "@graphql-tools/load-files": "7.0.0",
         "@graphql-tools/merge": "9.0.3",
         "@graphql-tools/schema": "10.0.3",
-        "@graphql-tools/utils": "10.1.0",
+        "@graphql-tools/utils": "10.1.1",
         "@keyv/redis": "2.8.4",
         "body-parser": "1.20.2",
         "compression": "1.7.4",
@@ -58,6 +57,8 @@
         "ws": "8.16.0"
     },
     "devDependencies": {
+        "@commitlint/cli": "19.0.3",
+        "@commitlint/config-conventional": "19.0.3",
         "@swc/core": "1.4.6",
         "@types/compression": "1.7.5",
         "@types/express": "4.17.21",

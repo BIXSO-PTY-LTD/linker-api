@@ -1,12 +1,12 @@
 import { TestModel } from '#models';
-import { mongoose } from '#shared/mongoose';
+import { mongooseCtr } from '#shared/mongoose';
 
 export const testCtr = {
     get: async (req, args) => {
-        return mongoose.findOne(TestModel, args);
+        return mongooseCtr.findOne(TestModel, args);
     },
     set: async (req, { id, name }) => {
-        return mongoose.update(
+        return mongooseCtr.update(
             TestModel,
             { id },
             {

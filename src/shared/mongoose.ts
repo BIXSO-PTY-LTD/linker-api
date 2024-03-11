@@ -1,4 +1,4 @@
-export const mongoose: any = {
+export const mongooseCtr = {
     history: {
         findOne: async (model, conditions = {}, projection, options = {}, populate) => {
             let docQuery;
@@ -14,7 +14,7 @@ export const mongoose: any = {
             if (!docFound) {
                 return {
                     success: false,
-                    message: `Get ${crudCtr.getModelName(model)} history failed!`,
+                    message: `Get ${mongooseCtr.getModelName(model)} history failed!`,
                 };
             }
 
@@ -26,7 +26,7 @@ export const mongoose: any = {
                 ...(!patchsFound
                     ? {
                           success: false,
-                          message: `Get ${crudCtr.getModelName(model)} history failed!`,
+                          message: `Get ${mongooseCtr.getModelName(model)} history failed!`,
                       }
                     : { success: true, result: patchsFound }),
             };
@@ -39,7 +39,7 @@ export const mongoose: any = {
             ...(!foundResults
                 ? {
                       success: false,
-                      message: `Get ${crudCtr.getModelName(model)} failed!`,
+                      message: `Get ${mongooseCtr.getModelName(model)} failed!`,
                   }
                 : { success: true, result: foundResults }),
         };
@@ -51,7 +51,7 @@ export const mongoose: any = {
             ...(!foundResults
                 ? {
                       success: false,
-                      message: `Get ${crudCtr.getModelName(model)} failed!`,
+                      message: `Get ${mongooseCtr.getModelName(model)} failed!`,
                   }
                 : { success: true, result: foundResults }),
         };
@@ -63,7 +63,7 @@ export const mongoose: any = {
             ...(!foundResults
                 ? {
                       success: false,
-                      message: `Get ${crudCtr.getModelName(model)} failed!`,
+                      message: `Get ${mongooseCtr.getModelName(model)} failed!`,
                   }
                 : { success: true, result: foundResults }),
         };
@@ -83,7 +83,7 @@ export const mongoose: any = {
             ...(!docFound
                 ? {
                       success: false,
-                      message: `Get ${crudCtr.getModelName(model)} failed!`,
+                      message: `Get ${mongooseCtr.getModelName(model)} failed!`,
                   }
                 : { success: true, result: docFound.toObject({ virtuals: true }) }),
         };
@@ -112,7 +112,7 @@ export const mongoose: any = {
             ...(!createdRecord
                 ? {
                       success: false,
-                      message: `Create ${crudCtr.getModelName(model)} failed!`,
+                      message: `Create ${mongooseCtr.getModelName(model)} failed!`,
                   }
                 : { success: true, result: createdRecord }),
         };
@@ -130,7 +130,7 @@ export const mongoose: any = {
             ...(!createdRecords
                 ? {
                       success: false,
-                      message: `Create ${crudCtr.getModelName(model)} failed!`,
+                      message: `Create ${mongooseCtr.getModelName(model)} failed!`,
                   }
                 : { success: true, result: createdRecords }),
         };
@@ -161,7 +161,7 @@ export const mongoose: any = {
             ...(!updatedRecord
                 ? {
                       success: false,
-                      message: `Update ${crudCtr.getModelName(model)} failed!`,
+                      message: `Update ${mongooseCtr.getModelName(model)} failed!`,
                   }
                 : { success: true, result: updatedRecord }),
         };
@@ -179,7 +179,7 @@ export const mongoose: any = {
             ...(!updatedRecord
                 ? {
                       success: false,
-                      message: `Update ${crudCtr.getModelName(model)} failed!`,
+                      message: `Update ${mongooseCtr.getModelName(model)} failed!`,
                   }
                 : { success: true, result: updatedRecord }),
         };
@@ -197,7 +197,7 @@ export const mongoose: any = {
             ...(!deletedRecord
                 ? {
                       success: false,
-                      message: `Delete ${crudCtr.getModelName(model)} failed!`,
+                      message: `Delete ${mongooseCtr.getModelName(model)} failed!`,
                   }
                 : { success: true, result: deletedRecord }),
         };
@@ -215,16 +215,16 @@ export const mongoose: any = {
             ...(!deletedRecord && !deletedRecord.ok
                 ? {
                       success: false,
-                      message: `Delete ${crudCtr.getModelName(model)} failed!`,
+                      message: `Delete ${mongooseCtr.getModelName(model)} failed!`,
                   }
                 : { success: true }),
         };
     },
     softDelete: (model, conditions = {}, options = {}, populate) => {
-        return crudCtr.update(model, conditions, { isDel: true }, options, populate);
+        return mongooseCtr.update(model, conditions, { isDel: true }, options, populate);
     },
     recover: (model, conditions = {}, options = {}, populate) => {
-        return crudCtr.update(model, conditions, { isDel: false }, options, populate);
+        return mongooseCtr.update(model, conditions, { isDel: false }, options, populate);
     },
     getModelName: (model) => {
         return model.collection.collectionName;

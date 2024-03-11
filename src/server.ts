@@ -1,7 +1,5 @@
 import { ApolloServer } from '@apollo/server';
-import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
 import { expressMiddleware } from '@apollo/server/express4';
-import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 import { KeyvAdapter } from '@apollo/utils.keyvadapter';
 import { json } from 'body-parser';
@@ -111,9 +109,6 @@ import config from '#config';
         csrfPrevention: config.IS_DEV || config.IS_STAG ? false : true,
         cache: config.IS_DEV ? 'bounded' : new KeyvAdapter(new Keyv('redis://localhost:6379')),
         plugins: [
-            config.IS_DEV || config.IS_STAG
-                ? ApolloServerPluginLandingPageGraphQLPlayground()
-                : ApolloServerPluginLandingPageDisabled(),
             // Proper shutdown for the HTTP server.
             ApolloServerPluginDrainHttpServer({ httpServer }),
             // Proper shutdown for the WebSocket server.
