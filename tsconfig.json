@@ -19,7 +19,7 @@
             "#api/*": ["src/api/*"],
             "#controllers": ["src/controllers"],
             "#models": ["src/models"],
-            "#shared/*": ["src/shared/*"],
+            "#shared": ["src/shared"],
             "#typescript": ["src/typescript"],
             "#config": ["src/config"]
         },

@@ -1,5 +1,5 @@
+import { mongooseCtr } from '#controllers';
 import { TestModel } from '#models';
-import { mongooseCtr } from '#shared/mongoose';
 
 export const testCtr = {
     get: async (req, args) => {

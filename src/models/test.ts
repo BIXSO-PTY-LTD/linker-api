@@ -1,7 +1,7 @@
 import { generateModel } from 'cyberskill/utils/mongoose';
 import mongoose from 'mongoose';
 
-import { validate } from '#shared/validate';
+import { validate } from '#shared';
 import { I_Test } from '#typescript';
 
 export const TestModel = generateModel({
