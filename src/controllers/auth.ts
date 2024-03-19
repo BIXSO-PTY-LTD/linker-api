@@ -147,5 +147,110 @@ export const authCtr = {
         throwResponse({
             message: 'Đăng xuất thất bại.',
         });
+import { GraphQLError } from 'graphql';
+import { userCtr, userVerificationCtr } from '#controllers';
+import {
+    E_IDENTITY_TYPE,
+    I_User,
+    T_HandleChangePasswordArgs,
+    T_HandleChangePasswordReturn,
+    T_HandleRequestTempPasswordArgs,
+    T_HandleRequestTempPasswordReturn,
+} from '#typescript';
+import { PasswordEncrypt } from 'src/utils/encrypt/password.encrypt';
+
+const TEMP_PASSWORD_RESEND_TIME_IN_SECONDS = 60;
+const TEMP_PASSWORD_EXPIRATION_TIME_IN_MS = 3 * 60 * 1000;
+
+interface I_AuthCtr {
+    handleGetUserOrThrowNotFoundError: (identityType: E_IDENTITY_TYPE, identity: string) => Promise<I_User | void>;
+    handleRequestTempPassword: (args: T_HandleRequestTempPasswordArgs) => Promise<T_HandleRequestTempPasswordReturn>;
+    handleChangePassword: (args: T_HandleChangePasswordArgs) => Promise<T_HandleChangePasswordReturn>;
+}
+
+export const authCtr: I_AuthCtr = {
+    handleGetUserOrThrowNotFoundError: async (identityType: E_IDENTITY_TYPE, identity: string) => {
+        const user = await userCtr.getUser({ [identityType]: identity });
+
+        if (!user)
+            throw new GraphQLError(`Người dùng với ${identityType} ${identity} không tồn tại`, {
+                extensions: {
+                    code: 404,
+                },
+            });
+
+        return user;
+    },
+    handleRequestTempPassword: async ({ identityType, identity }) => {
+        const foundUser = (await authCtr.handleGetUserOrThrowNotFoundError(identityType, identity)) as I_User;
+
+        const foundUserVerification = await userVerificationCtr.findOne({ identity });
+
+        if (foundUserVerification) {
+            const userVerificationTimeInSeconds = foundUserVerification.createdAt.getTime() / 1000;
+
+            if (userVerificationTimeInSeconds < TEMP_PASSWORD_RESEND_TIME_IN_SECONDS) {
+                const time = userVerificationCtr.calculateTimeDifference(
+                    TEMP_PASSWORD_RESEND_TIME_IN_SECONDS,
+                    foundUserVerification.createdAt,
+                );
+                throw new GraphQLError(`Vui lòng thử lại sau ${time} giây`, {
+                    extensions: {
+                        code: 429,
+                    },
+                });
+            }
+        }
+
+        const tempPassword = userVerificationCtr.generateTempPassword();
+        const tempHashedPassword = await PasswordEncrypt.hashPassword(tempPassword);
+
+        const expiresAt = new Date(Date.now() + TEMP_PASSWORD_EXPIRATION_TIME_IN_MS);
+        await userVerificationCtr.createOrUpdate({
+            userId: foundUser.id,
+            identity,
+            identityType,
+            tempPassword,
+            expiresAt,
+        });
+
+        await userCtr.updateOne({ id: foundUser.id }, { password: tempHashedPassword });
+
+        const sendTempPasswordResult = userVerificationCtr.sendTempPassword(identityType, identity, tempPassword);
+        if (sendTempPasswordResult !== 'success')
+            throw new GraphQLError('Gửi mật khẩu tạm thất bại', {
+                extensions: {
+                    code: 500,
+                },
+            });
+
+        return {
+            message: 'Gửi mật khẩu tạm cho người dùng thành công',
+            success: true,
+        };
+    },
+
+    handleChangePassword: async (payload) => {
+        if (payload.newPassword !== payload.confirmNewPassword)
+            throw new GraphQLError('Mật khẩu mới và xác nhận không khớp', { extensions: { code: 400 } });
+
+        const foundUser = (await authCtr.handleGetUserOrThrowNotFoundError(
+            payload.identityType,
+            payload.identity,
+        )) as I_User;
+
+        const isPasswordMatch = await PasswordEncrypt.comparePassword(payload.oldPassword, foundUser.password);
+        if (!isPasswordMatch) throw new GraphQLError('Mật khẩu cũ không đúng', { extensions: { code: 400 } });
+
+        const newHashedPassword = await PasswordEncrypt.hashPassword(payload.newPassword);
+        await userCtr.updateOne({ [payload.identityType]: payload.identity }, { password: newHashedPassword });
+
+        // TODO: Send email or phone to notify user about password change
+        // TODO: Delete user verification document after password change if needed ( case need otp )
+
+        return {
+            message: 'Đổi mật khẩu thành công!',
+            success: true,
+        };
     },
 };

@@ -24,4 +24,18 @@ type Mutation {
     register(user: Input_Register!): Type_Response_Auth!
     login(user: Input_Login!): Type_Response_Auth!
     logout: Type_Response_Auth!
+type Mutation {
+    requestPasswordReset(identityType: String!, identity: String!): Response!
+    changePassword(
+        identityType: String!
+        identity: String!
+        oldPassword: String!
+        newPassword: String!
+        confirmNewPassword: String!
+    ): Response!
+}
+
+type Response {
+    success: Boolean!
+    message: String
 }

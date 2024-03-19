@@ -9,5 +9,11 @@ export default {
         register: (_, args: { user: I_Input_Register }, { req }: I_Context) => authCtr.register(req, args.user),
         login: (_, args: { user: I_Input_Login }, { SECRET, req }: I_Context) => authCtr.login(req, args.user, SECRET),
         logout: (_, __, { req }: I_Context) => authCtr.logout(req),
+import { T_HandleChangePasswordArgs, T_HandleRequestTempPasswordArgs } from '#typescript';
+
+export default {
+    Mutation: {
+        requestPasswordReset: (_, args: T_HandleRequestTempPasswordArgs) => authCtr.handleRequestTempPassword(args),
+        changePassword: (_, args: T_HandleChangePasswordArgs) => authCtr.handleChangePassword(args),
     },
 };

@@ -20,6 +20,10 @@ const config: any = {
     WS_PORT: process.env.WS_PORT || 7999,
     SECRET: process.env.SECRET || 'ixN0-Vqnj9JAQzE(u*Z59xj#8ZKujr%w', // 32 chars required
     UPLOAD_FOLDER: process.env.UPLOAD_FOLDER || 'bixso',
+    DATABASE_COLLECTIONS: {
+        USER: process.env.USER_COLLECTION_NAME || 'users',
+        USER_VERIFICATION: process.env.USER_VERIFICATION_COLLECTION_NAME || 'user-verifications',
+    },
 };
 
 config.getCurrentEnvironment = () => {
