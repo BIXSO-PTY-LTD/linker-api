@@ -1,16 +1,18 @@
 import { FilterQuery } from 'mongoose';
-import config from '#config';
+import { SendEmailRequest } from 'aws-sdk/clients/ses';
 
-import { E_IDENTITY_TYPE, I_UserVerification } from '#typescript';
+import config from '#config';
 import { mongooseCtr } from '#controllers';
 import { UserVerificationModel } from '#models';
+import { T_SmsOptions, sendAutoSMS, sendAutoEmail } from 'src/libs';
+import { E_IDENTITY_TYPE, I_UserVerification } from '#typescript';
 
 interface I_UserVerificationCtr {
     findOne: (filter: FilterQuery<I_UserVerification>) => Promise<I_UserVerification | null>;
     createOrUpdate: (model: Partial<I_UserVerification>) => Promise<boolean>;
     generateTempPassword: () => string;
-    sendTempPassword(identityType: string, identity: string, tempPassword: string): string;
-    calculateTimeDifference(otpResendTime: number, createdAt: Date): number;
+    sendTempPassword: (identityType: string, identity: string, tempPassword: string) => Promise<string>;
+    calculateTimeDifference: (otpResendTime: number, createdAt: Date) => number;
 }
 
 export const userVerificationCtr: I_UserVerificationCtr = {
@@ -45,21 +47,39 @@ export const userVerificationCtr: I_UserVerificationCtr = {
         };
         return TEMP_PASSWORD_BASE_ON_ENV[config.getCurrentEnvironment()];
     },
-    sendTempPassword: (identityType: string, identity: string, tempPassword: string) => {
+    sendTempPassword: async (identityType: string, identity: string, tempPassword: string) => {
         switch (identityType) {
             case E_IDENTITY_TYPE.PHONE: {
-                const phonePayload = {};
-                // TODO: Implement send phone service here
+                const phonePayload: T_SmsOptions = {
+                    to: identity,
+                    body: `Mật khẩu mới của bạn là: ${tempPassword}`,
+                };
+                const isSendTempPasswordSuccess = await sendAutoSMS(phonePayload);
+                if (!isSendTempPasswordSuccess) return 'error';
                 return 'success';
             }
             case E_IDENTITY_TYPE.EMAIL: {
-                const emailPayload = {
-                    to: identity,
-                    subject: 'Temp password for password reset',
-                    text: `Your temp password is ${tempPassword}`,
-                    from: '', // TODO: Implement email sender service here
+                const emailPayload: SendEmailRequest = {
+                    Source: 'no-reply@coach-linker.vn',
+                    Destination: {
+                        ToAddresses: [identity],
+                    },
+                    ReplyToAddresses: [''],
+                    Message: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: `Mật khẩu mới của bạn là ${tempPassword}!`,
+                            },
+                        },
+                        Subject: {
+                            Charset: 'UTF-8',
+                            Data: 'Yêu cầu đổi mật khẩu!',
+                        },
+                    },
                 };
-                // TODO: Implement send email service here
+                const isSendTempPasswordSuccess = await sendAutoEmail(emailPayload);
+                if (!isSendTempPasswordSuccess) return 'error';
                 return 'success';
             }
             default: {

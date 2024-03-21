@@ -24,6 +24,21 @@ const config: any = {
         USER: process.env.USER_COLLECTION_NAME || 'users',
         USER_VERIFICATION: process.env.USER_VERIFICATION_COLLECTION_NAME || 'user-verifications',
     },
+    SMS: {
+        TWILIO: {
+            ACCOUNT_SID: process.env.TWILIO_SID || '',
+            AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN || '',
+            SENDER: process.env.TWILIO_SENDER_PHONE || '',
+        },
+    },
+    AWS: {
+        SES: {
+            API_VERSION: '2010-12-01',
+            ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || '',
+            SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY || '',
+            REGION: process.env.AWS_REGION || '',
+        },
+    },
 };
 
 config.getCurrentEnvironment = () => {

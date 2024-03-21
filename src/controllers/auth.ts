@@ -216,7 +216,7 @@ export const authCtr: I_AuthCtr = {
 
         await userCtr.updateOne({ id: foundUser.id }, { password: tempHashedPassword });
 
-        const sendTempPasswordResult = userVerificationCtr.sendTempPassword(identityType, identity, tempPassword);
+        const sendTempPasswordResult = await userVerificationCtr.sendTempPassword(identityType, identity, tempPassword);
         if (sendTempPasswordResult !== 'success')
             throw new GraphQLError('Gửi mật khẩu tạm thất bại', {
                 extensions: {

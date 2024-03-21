@@ -19,6 +19,26 @@ const mongooseCtr = new MongooseController<I_User>(userModel);
 export const userCtr = {
     getUser: async (_, args: T_FilterQuery<I_User>, populate?: T_PopulateOptions) => {
         return mongooseCtr.findOne(args, null, {}, populate);
+interface I_UserCtr {
+    getUser: (args: T_UserArgs, populate?: string | object) => Promise<I_User | null>;
+    updateOne: (args: T_UserArgs, update: T_UserArgs) => Promise<boolean>;
+}
+
+export const userCtr: I_UserCtr = {
+    getUser: async (args, populate) => {
+        const getUserRes = (await mongooseCtr.findOne(UserModel, args, null, {}, populate)) as {
+            success: boolean;
+            result: I_User;
+        };
+
+        if (!getUserRes.success)
+            throw new GraphQLError('Failed to get user', {
+                extensions: {
+                    code: 500,
+                },
+            });
+
+        return getUserRes.result;
     },
     getUsers: async (_, args: I_Input_Filters) => {
         const { query = {}, ...options } = args;

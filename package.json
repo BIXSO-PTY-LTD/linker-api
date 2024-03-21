@@ -30,6 +30,7 @@
         "@graphql-tools/utils": "10.1.2",
         "@keyv/redis": "2.8.4",
         "bcryptjs": "^2.4.3",
+        "aws-sdk": "^2.1582.0",
         "bcrypt": "^5.1.1",
         "body-parser": "1.20.2",
         "compression": "1.7.4",
@@ -47,6 +48,7 @@
         "graphql-tag": "2.12.6",
         "graphql-ws": "5.15.0",
         "jsonwebtoken": "^9.0.2",
+        "handlebars": "^4.7.8",
         "keyv": "4.5.4",
         "mongoose": "8.2.3",
         "lodash": "^4.17.21",
@@ -56,6 +58,7 @@
         "npm-run-all": "4.1.5",
         "rimraf": "5.0.5",
         "tsc-alias": "1.8.8",
+        "twilio": "^5.0.1",
         "ws": "8.16.0"
     },
     "devDependencies": {
