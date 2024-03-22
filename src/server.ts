@@ -128,7 +128,10 @@ import config from '#config';
                   includeStacktraceInErrorResponses: true,
               }
             : config.IS_DEV
-              ? { includeStacktraceInErrorResponses: true }
+              ? {
+                    introspection: true,
+                    includeStacktraceInErrorResponses: true,
+                }
               : {}),
     });
 

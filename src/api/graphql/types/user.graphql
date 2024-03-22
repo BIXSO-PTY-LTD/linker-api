@@ -1,0 +1,67 @@
+type Type_User {
+    id: String
+    fullName: String
+    email: String
+    phone: String
+    isDel: Boolean
+    createdAt: DateTime
+    updatedAt: DateTime
+}
+
+input Input_Get_User {
+    id: String!
+    populate: String
+}
+
+input Input_Create_User {
+    fullName: String!
+    email: String!
+    password: String!
+    phone: String
+}
+
+input Input_Update_User {
+    id: String!
+    fullName: String
+    email: String
+    password: String
+    phone: String
+}
+
+input Input_Delete_User {
+    id: String!
+}
+
+type Type_Paginate_User {
+    docs: [Type_User]
+    totalDocs: Int
+    limit: Int
+    hasPrevPage: Boolean
+    hasNextPage: Boolean
+    page: Int
+    totalPages: Int
+    offset: Int
+    prevPage: Int
+    nextPage: Int
+    pagingCounter: Int
+    meta: JSON
+}
+
+union Union_Result_User = Type_Paginate_User | Type_User
+
+type Type_Response_User {
+    success: Boolean!
+    message: String
+    result: Union_Result_User
+}
+
+type Query {
+    getUsers(filters: Input_Filters): Type_Response_User!
+    getUser(user: Input_Get_User!): Type_Response_User!
+}
+
+type Mutation {
+    createUser(user: Input_Create_User!): Response_User!
+    updateUser(user: Input_Update_User!): Response_User!
+    deleteUser(user: Input_Delete_User!): Response_User!
+}
