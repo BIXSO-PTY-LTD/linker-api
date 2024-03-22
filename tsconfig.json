@@ -19,8 +19,7 @@
             "#api/*": ["src/api/*"],
             "#controllers": ["src/controllers"],
             "#models": ["src/models"],
-            "#shared": ["src/shared"],
-            "#typescript": ["src/typescript"],
+            "#shared/*": ["src/shared/*"],
             "#config": ["src/config"]
         },
         "esModuleInterop": true,

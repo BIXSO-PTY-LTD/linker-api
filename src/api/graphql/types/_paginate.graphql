@@ -1,4 +1,4 @@
-input InputPagingRequest {
+input Input_Filters {
     # https://docs.mongodb.com/manual/tutorial/query-documents/
     query: JSON
     aggregate: JSON

@@ -1,0 +1,27 @@
+input Input_Register {
+    fullName: String!
+    email: String!
+    password: String!
+    phone: String
+}
+
+input Input_Login {
+    identify: String!
+    password: String!
+    rememberMe: Boolean
+}
+
+type Type_Response_Auth {
+    success: Boolean
+    token: String
+}
+
+type Query {
+    checkAuth(token: String): Type_Response_Auth!
+}
+
+type Mutation {
+    register(user: Input_Register!): Type_Response_Auth!
+    login(user: Input_Login!): Type_Response_Auth!
+    logout: Type_Response_Auth!
+}
