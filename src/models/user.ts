@@ -1,13 +1,14 @@
 import { generateModel, validate } from 'cyberskill/utils';
 import mongoose from 'mongoose';
 
+import config from '#config';
 import { I_User } from '#shared/typescript/user';
 
-export const userModel = generateModel<I_User>({
+export const UserModel = generateModel<I_User>({
     mongoose,
-    name: 'User',
+    name: config.DATABASE_COLLECTIONS.USER,
     pagination: true,
-    schema: new mongoose.Schema({
+    schema: {
         email: {
             type: String,
             validate: [
@@ -36,5 +37,5 @@ export const userModel = generateModel<I_User>({
         phone: {
             type: String,
         },
-    }),
+    },
 });

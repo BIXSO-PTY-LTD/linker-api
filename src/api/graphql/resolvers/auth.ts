@@ -1,13 +1,39 @@
 import { authCtr } from '#controllers';
-import { I_Context, I_Input_CheckAuth, I_Input_Login, I_Input_Register } from '#shared/typescript';
+import {
+    I_Context,
+    I_Input_ChangePassword,
+    I_Input_CheckAuth,
+    I_Input_Login,
+    I_Input_Register,
+    I_Input_RequestPasswordReset,
+    I_Request,
+    I_Response_Auth,
+} from '#shared/typescript';
 
-export default {
+interface I_AuthResolver {
     Query: {
-        checkAuth: (_, args: I_Input_CheckAuth, { req }: I_Context) => authCtr.checkAuth(req, args),
+        checkAuth: (_, args: I_Input_CheckAuth, context: I_Context) => Promise<I_Response_Auth>;
+    };
+    Mutation: {
+        register: (_, args: I_Input_Register, context: I_Context) => Promise<I_Response_Auth>;
+        login: (_, args: I_Input_Login, context: I_Context) => Promise<I_Response_Auth>;
+        logout: (_, __: I_Request, context: I_Context) => Promise<I_Response_Auth>;
+        requestPasswordReset: (_, args: I_Input_RequestPasswordReset, context: I_Context) => Promise<I_Response_Auth>;
+        changePassword: (_, args: I_Input_ChangePassword, context: I_Context) => Promise<I_Response_Auth>;
+    };
+}
+
+const authResolver: I_AuthResolver = {
+    Query: {
+        checkAuth: (_, args, { req }) => authCtr.checkAuth(req, args),
     },
     Mutation: {
-        register: (_, args: { user: I_Input_Register }, { req }: I_Context) => authCtr.register(req, args.user),
-        login: (_, args: { user: I_Input_Login }, { SECRET, req }: I_Context) => authCtr.login(req, args.user, SECRET),
-        logout: (_, __, { req }: I_Context) => authCtr.logout(req),
+        register: (_, args, { req }) => authCtr.register(req, args),
+        login: (_, args, { req }) => authCtr.login(req, args),
+        logout: (_, __, { req }) => authCtr.logout(req),
+        requestPasswordReset: (_, args, { req }) => authCtr.requestPasswordReset(req, args),
+        changePassword: (_, args, { req }) => authCtr.changePassword(req, args),
     },
 };
+
+export default authResolver;
