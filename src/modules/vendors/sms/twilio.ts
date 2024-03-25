@@ -1,13 +1,7 @@
 import { Twilio } from 'twilio';
+
 import config from '#config';
-
-export type T_SmsOptions = {
-    to: string;
-    body: string;
-    from?: string;
-};
-
-type T_SendAutoSMS = (options: T_SmsOptions) => Promise<boolean>;
+import { T_SendAutoSMS } from './twilio.types';
 
 export const sendAutoSMS: T_SendAutoSMS = async (options) => {
     const transport = new Twilio(config.SMS.TWILIO.ACCOUNT_SID, config.SMS.TWILIO.TWILIO_AUTH_TOKEN, {

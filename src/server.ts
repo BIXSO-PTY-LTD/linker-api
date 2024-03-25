@@ -19,9 +19,9 @@ import { WebSocketServer } from 'ws';
 
 dotenv.config();
 
-import schema from '#api/graphql/schema';
-import { mainRouter } from '#api/rest';
 import config from '#config';
+import { mainRouter } from '#modules/rest-api';
+import schema from '#shared/graphql/schema';
 
 (async () => {
     // const { authCtr, cronJobCtr }: any = getControllers();

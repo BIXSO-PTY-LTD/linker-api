@@ -5,6 +5,10 @@ import jwt from 'jsonwebtoken';
 import omit from 'lodash/omit';
 
 import config from '#config';
+import { userCtr } from '#modules/user';
+import { userVerificationCtr } from '#modules/user-verification';
+import { I_Request } from '#shared/typescript';
+import { PasswordEncrypt } from '#shared/utils/encrypt/password.encrypt';
 import {
     I_Input_ChangePassword,
     I_Input_CheckAuth,
@@ -13,12 +17,8 @@ import {
     I_Input_Login,
     I_Input_Register,
     I_Input_RequestPasswordReset,
-    I_Request,
     I_Response_Auth,
-} from '#shared/typescript';
-import { PasswordEncrypt } from '#shared/utils/encrypt/password.encrypt';
-import { userCtr } from './user';
-import { userVerificationCtr } from './user-verification';
+} from './auth.types';
 
 const TEMP_PASSWORD_RESEND_TIME_IN_SECONDS = 60;
 const TEMP_PASSWORD_EXPIRATION_TIME_IN_MS = 3 * 60 * 1000;
@@ -36,13 +36,9 @@ interface I_AuthCtr {
 
 export const authCtr: I_AuthCtr = {
     generateToken: (req, { id }) => {
-        let token = '';
-
-        token = jwt.sign({ iat: Date.now(), userId: id }, req.SECRET, {
+        return jwt.sign({ iat: Date.now(), userId: id }, req.SECRET, {
             expiresIn: config.SESSION.MAX_AGE,
         });
-
-        return token;
     },
     checkToken: async (req, args) => {
         const { token } = args;
@@ -210,7 +206,7 @@ export const authCtr: I_AuthCtr = {
             expiresAt,
         });
 
-        await userCtr.updateUser(req, { id: userFound.result.id, password: tempHashedPassword });
+        await userCtr.updateUser(req, { id: userFound.result.id }, { password: tempHashedPassword });
 
         const sendTempPasswordResult = await userVerificationCtr.sendTempPassword(identityType, identity, tempPassword);
 
@@ -254,7 +250,7 @@ export const authCtr: I_AuthCtr = {
 
         const newHashedPassword = await PasswordEncrypt.hashPassword(newPassword);
 
-        const userUpdated = await userCtr.updateUser(req, { id: userFound.result.id, password: newHashedPassword });
+        const userUpdated = await userCtr.updateUser(req, { id: userFound.result.id }, { password: newHashedPassword });
 
         if (!userUpdated.success) {
             throwResponse({

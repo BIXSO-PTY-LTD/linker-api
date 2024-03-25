@@ -1,15 +1,10 @@
-import { I_GenericDocument, T_PopulateOptions } from 'cyberskill/typescript';
+import { I_GenericDocument } from 'cyberskill/typescript';
 
 export interface I_User extends I_GenericDocument {
     email: string;
     fullName: string;
     password: string;
     phone?: string;
-}
-
-export interface I_Input_Get_User {
-    id: string;
-    populate?: T_PopulateOptions;
 }
 
 export interface I_Input_Create_User {

@@ -1,7 +1,7 @@
 import { Request as RequestExpress } from 'express';
 import { Session } from 'express-session';
 
-import { I_User } from './user';
+import { I_User } from '../../modules/user/user.types';
 
 export interface I_Request extends RequestExpress {
     session: Session & {

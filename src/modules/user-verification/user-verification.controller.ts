@@ -4,15 +4,14 @@ import { I_Return, T_FilterQuery, T_PopulateOptions } from 'cyberskill/typescrip
 import { throwResponse } from 'cyberskill/utils';
 
 import config from '#config';
-import { UserVerificationModel } from '#models';
+import { T_SmsOptions, sendAutoEmail, sendAutoSMS } from '#modules/vendors';
+import { E_IdentityType, I_Request } from '#shared/typescript';
+import { UserVerificationModel } from './user-verification.model';
 import {
-    E_IdentityType,
     I_Input_Create_UserVerification,
     I_Input_Update_UserVerification,
-    I_Request,
     I_UserVerification,
-} from '#shared/typescript';
-import { T_SmsOptions, sendAutoEmail, sendAutoSMS } from 'src/libs';
+} from './user-verification.types';
 
 interface I_UserVerificationCtr {
     getUserVerification: (

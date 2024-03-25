@@ -4,22 +4,19 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { IResolvers, TypeSource } from '@graphql-tools/utils';
 import { DocumentNode, GraphQLScalarType } from 'graphql';
 import { GraphQLDateTime, GraphQLJSON } from 'graphql-scalars';
-import path from 'path';
 
-type ResolverObject = Record<string, Record<string, GraphQLScalarType>>;
+type T_ResolverObject = Record<string, Record<string, GraphQLScalarType>>;
 
-const typesArray: TypeSource = loadFilesSync<string>(path.join(__dirname, './types'), {
-    extensions: ['graphql'],
+const typesArray: TypeSource = loadFilesSync<string>('src/**/*.graphql', {
     recursive: true,
 });
 
-const resolversArray: IResolvers[] = loadFilesSync<ResolverObject>(path.join(__dirname, './resolvers'), {
-    extensions: ['js', 'ts'],
+const resolversArray: IResolvers[] = loadFilesSync<T_ResolverObject>('src/**/*.resolver.{js,ts}', {
     recursive: true,
 });
 
 const allTypes: DocumentNode = mergeTypeDefs(typesArray);
-export const allResolvers: IResolvers = mergeResolvers(resolversArray);
+const allResolvers: IResolvers = mergeResolvers(resolversArray);
 
 const schema = makeExecutableSchema({
     typeDefs: allTypes,

@@ -1,4 +1,6 @@
-export * from './auth';
 export * from './express';
-export * from './user';
-export * from './user-verification';
+
+export enum E_IdentityType {
+    EMAIL = 'email',
+    PHONE = 'phone',
+}

@@ -2,7 +2,8 @@ import { generateModel } from 'cyberskill/utils/mongoose';
 import mongoose from 'mongoose';
 
 import config from '#config';
-import { E_IdentityType, I_UserVerification } from '#shared/typescript';
+import { E_IdentityType } from '#shared/typescript';
+import { I_UserVerification } from './user-verification.types';
 
 export const UserVerificationModel = generateModel<I_UserVerification>({
     mongoose,

@@ -1,15 +1,15 @@
-import { I_GenericDocument } from 'cyberskill/typescript';
+import { E_IdentityType } from '#shared/typescript';
 
-export interface I_Input_CheckAuth {
-    token: string;
+export interface I_Input_GenerateToken {
+    id?: string;
 }
 
 export interface I_Input_CheckToken {
     token: string;
 }
 
-export interface I_Input_GenerateToken {
-    id?: string;
+export interface I_Input_CheckAuth {
+    token: string;
 }
 
 export interface I_Input_Login {
@@ -23,11 +23,6 @@ export interface I_Input_Register {
     email: string;
     password: string;
     phone?: string;
-}
-
-export enum E_IdentityType {
-    EMAIL = 'email',
-    PHONE = 'phone',
 }
 
 export interface I_Input_RequestPasswordReset {

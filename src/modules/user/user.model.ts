@@ -2,7 +2,7 @@ import { generateModel, validate } from 'cyberskill/utils';
 import mongoose from 'mongoose';
 
 import config from '#config';
-import { I_User } from '#shared/typescript/user';
+import { I_User } from './user.types';
 
 export const UserModel = generateModel<I_User>({
     mongoose,

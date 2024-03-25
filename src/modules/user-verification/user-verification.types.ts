@@ -1,6 +1,6 @@
 import { I_GenericDocument } from 'cyberskill/typescript';
 
-import { E_IdentityType } from './auth';
+import { E_IdentityType } from '#shared/typescript';
 
 export interface I_UserVerification extends I_GenericDocument {
     identity: string;

@@ -1,14 +1,13 @@
-import { authCtr } from '#controllers';
+import { I_Context } from '#shared/typescript';
+import { authCtr } from './auth.controller';
 import {
-    I_Context,
     I_Input_ChangePassword,
     I_Input_CheckAuth,
     I_Input_Login,
     I_Input_Register,
     I_Input_RequestPasswordReset,
-    I_Request,
     I_Response_Auth,
-} from '#shared/typescript';
+} from './auth.types';
 
 interface I_AuthResolver {
     Query: {
@@ -17,13 +16,13 @@ interface I_AuthResolver {
     Mutation: {
         register: (_, args: I_Input_Register, context: I_Context) => Promise<I_Response_Auth>;
         login: (_, args: I_Input_Login, context: I_Context) => Promise<I_Response_Auth>;
-        logout: (_, __: I_Request, context: I_Context) => Promise<I_Response_Auth>;
+        logout: (_, __, context: I_Context) => Promise<I_Response_Auth>;
         requestPasswordReset: (_, args: I_Input_RequestPasswordReset, context: I_Context) => Promise<I_Response_Auth>;
         changePassword: (_, args: I_Input_ChangePassword, context: I_Context) => Promise<I_Response_Auth>;
     };
 }
 
-const authResolver: I_AuthResolver = {
+export default {
     Query: {
         checkAuth: (_, args, { req }) => authCtr.checkAuth(req, args),
     },
@@ -34,6 +33,4 @@ const authResolver: I_AuthResolver = {
         requestPasswordReset: (_, args, { req }) => authCtr.requestPasswordReset(req, args),
         changePassword: (_, args, { req }) => authCtr.changePassword(req, args),
     },
-};
-
-export default authResolver;
+} as I_AuthResolver;
