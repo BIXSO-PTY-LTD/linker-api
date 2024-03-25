@@ -36,7 +36,7 @@
         "connect-mongo": "5.1.0",
         "cors": "2.8.5",
         "cron": "3.1.6",
-        "cyberskill": "3.6.0",
+        "cyberskill": "3.6.1",
         "dotenv": "16.4.5",
         "express": "4.19.2",
         "express-device": "0.4.2",
