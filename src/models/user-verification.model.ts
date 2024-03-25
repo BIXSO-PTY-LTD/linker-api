@@ -1,13 +1,13 @@
+import { generateModel } from 'cyberskill/utils/mongoose';
 import mongoose from 'mongoose';
 
-import { generateModel } from 'cyberskill/utils/mongoose';
-import { E_IDENTITY_TYPE, I_UserVerification } from 'src/typescript';
 import config from '#config';
+import { E_IdentityType, I_UserVerification } from '#shared/typescript';
 
-export const UserVerificationModel = generateModel({
+export const UserVerificationModel = generateModel<I_UserVerification>({
     mongoose,
     name: config.DATABASE_COLLECTIONS.USER_VERIFICATION,
-    schema: new mongoose.Schema<I_UserVerification>({
+    schema: {
         identity: {
             type: String,
             required: true,
@@ -15,7 +15,7 @@ export const UserVerificationModel = generateModel({
         },
         identityType: {
             type: String,
-            enum: Object.values(E_IDENTITY_TYPE),
+            enum: Object.values(E_IdentityType),
             required: true,
         },
         userId: {
@@ -34,5 +34,5 @@ export const UserVerificationModel = generateModel({
             default: false,
         },
         tempBlockTime: Date,
-    }),
+    },
 });

@@ -1,4 +1,4 @@
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import { RESPONSE_STATUS } from 'cyberskill/constants';
 import { throwResponse } from 'cyberskill/utils';
 import jwt from 'jsonwebtoken';
@@ -6,26 +6,45 @@ import omit from 'lodash/omit';
 
 import config from '#config';
 import {
+    I_Input_ChangePassword,
     I_Input_CheckAuth,
     I_Input_CheckToken,
     I_Input_GenerateToken,
     I_Input_Login,
     I_Input_Register,
+    I_Input_RequestPasswordReset,
     I_Request,
+    I_Response_Auth,
 } from '#shared/typescript';
+import { PasswordEncrypt } from '#shared/utils/encrypt/password.encrypt';
 import { userCtr } from './user';
+import { userVerificationCtr } from './user-verification';
 
-export const authCtr = {
-    generateToken: (_, { id }: I_Input_GenerateToken, SECRET: string) => {
+const TEMP_PASSWORD_RESEND_TIME_IN_SECONDS = 60;
+const TEMP_PASSWORD_EXPIRATION_TIME_IN_MS = 3 * 60 * 1000;
+
+interface I_AuthCtr {
+    generateToken: (req: I_Request, { id }: I_Input_GenerateToken) => string;
+    checkToken: (req: I_Request, args: I_Input_CheckToken) => Promise<I_Response_Auth>;
+    checkAuth: (req: I_Request, args?: I_Input_CheckAuth) => Promise<I_Response_Auth>;
+    login: (req: I_Request, args: I_Input_Login) => Promise<I_Response_Auth>;
+    register: (req: I_Request, args: I_Input_Register) => Promise<I_Response_Auth>;
+    logout: (req: I_Request) => Promise<I_Response_Auth>;
+    requestPasswordReset: (req: I_Request, args: I_Input_RequestPasswordReset) => Promise<I_Response_Auth>;
+    changePassword: (req: I_Request, args: I_Input_ChangePassword) => Promise<I_Response_Auth>;
+}
+
+export const authCtr: I_AuthCtr = {
+    generateToken: (req, { id }) => {
         let token = '';
 
-        token = jwt.sign({ iat: Date.now(), userId: id }, SECRET, {
+        token = jwt.sign({ iat: Date.now(), userId: id }, req.SECRET, {
             expiresIn: config.SESSION.MAX_AGE,
         });
 
         return token;
     },
-    checkToken: async (req: I_Request, args: I_Input_CheckToken) => {
+    checkToken: async (req, args) => {
         const { token } = args;
         const { userId, exp } = jwt.decode(token);
 
@@ -44,7 +63,7 @@ export const authCtr = {
             success: true,
         };
     },
-    checkAuth: async (req: I_Request, args?: I_Input_CheckAuth) => {
+    checkAuth: async (req, args) => {
         if (req?.session?.user) {
             const userFound = await userCtr.getUser(req, {
                 id: req.session.user.id,
@@ -70,27 +89,27 @@ export const authCtr = {
             success: false,
         };
     },
-    login: async (req: I_Request, args: I_Input_Login, SECRET: string) => {
+    login: async (req, args) => {
         const authChecked = await authCtr.checkAuth(req);
 
         if (authChecked.success) {
             return authChecked;
         }
 
-        const { identify, password, rememberMe } = args;
+        const { identity, password, rememberMe } = args;
 
         const userFound = await userCtr.getUser(req, {
-            $or: [{ email: identify }, { phone: identify }],
+            $or: [{ email: identity }, { phone: identity }],
         });
 
-        if (!userFound.success) {
+        if (!userFound.success || !userFound.result) {
             throwResponse({
                 message: 'Thông tin đăng nhập không đúng.',
                 status: RESPONSE_STATUS.BAD_REQUEST,
             });
         }
 
-        const isPasswordMatched = bcrypt.compareSync(password, userFound.result?.password);
+        const isPasswordMatched = bcrypt.compareSync(password, userFound.result.password);
 
         if (!isPasswordMatched) {
             throwResponse({
@@ -99,27 +118,23 @@ export const authCtr = {
             });
         }
 
-        let token = '';
+        const token = rememberMe ? authCtr.generateToken(req, { id: userFound.result.id }) : '';
 
         req.session.user = userFound.result;
-
-        if (rememberMe) {
-            token = authCtr.generateToken(req, { id: userFound.result?.id }, SECRET);
-        }
 
         return {
             success: true,
             ...(token && { token }),
         };
     },
-    register: async (req: I_Request, args: I_Input_Register) => {
+    register: async (req, args) => {
         const userCreated = await userCtr.createUser(req, {
             ...args,
         });
 
         if (!userCreated.success) {
             throwResponse({
-                message: userCreated?.message,
+                message: userCreated.message,
             });
         }
 
@@ -129,7 +144,7 @@ export const authCtr = {
             success: true,
         };
     },
-    logout: async (req: I_Request) => {
+    logout: async (req) => {
         if (req?.session?.user) {
             req.session.destroy((err) => {
                 if (err) {
@@ -147,57 +162,37 @@ export const authCtr = {
         throwResponse({
             message: 'Đăng xuất thất bại.',
         });
-import { GraphQLError } from 'graphql';
-import { userCtr, userVerificationCtr } from '#controllers';
-import {
-    E_IDENTITY_TYPE,
-    I_User,
-    T_HandleChangePasswordArgs,
-    T_HandleChangePasswordReturn,
-    T_HandleRequestTempPasswordArgs,
-    T_HandleRequestTempPasswordReturn,
-} from '#typescript';
-import { PasswordEncrypt } from 'src/utils/encrypt/password.encrypt';
-
-const TEMP_PASSWORD_RESEND_TIME_IN_SECONDS = 60;
-const TEMP_PASSWORD_EXPIRATION_TIME_IN_MS = 3 * 60 * 1000;
-
-interface I_AuthCtr {
-    handleGetUserOrThrowNotFoundError: (identityType: E_IDENTITY_TYPE, identity: string) => Promise<I_User | void>;
-    handleRequestTempPassword: (args: T_HandleRequestTempPasswordArgs) => Promise<T_HandleRequestTempPasswordReturn>;
-    handleChangePassword: (args: T_HandleChangePasswordArgs) => Promise<T_HandleChangePasswordReturn>;
-}
-
-export const authCtr: I_AuthCtr = {
-    handleGetUserOrThrowNotFoundError: async (identityType: E_IDENTITY_TYPE, identity: string) => {
-        const user = await userCtr.getUser({ [identityType]: identity });
-
-        if (!user)
-            throw new GraphQLError(`Người dùng với ${identityType} ${identity} không tồn tại`, {
-                extensions: {
-                    code: 404,
-                },
-            });
-
-        return user;
     },
-    handleRequestTempPassword: async ({ identityType, identity }) => {
-        const foundUser = (await authCtr.handleGetUserOrThrowNotFoundError(identityType, identity)) as I_User;
+    requestPasswordReset: async (req, { identityType, identity }) => {
+        const userFound = await userCtr.getUser(req, {
+            $or: [{ email: identity }, { phone: identity }],
+        });
 
-        const foundUserVerification = await userVerificationCtr.findOne({ identity });
+        if (!userFound.success || !userFound.result) {
+            throwResponse({
+                message: 'Người dùng không tồn tại.',
+            });
+        }
 
-        if (foundUserVerification) {
-            const userVerificationTimeInSeconds = foundUserVerification.createdAt.getTime() / 1000;
+        const userVerificationFound = await userVerificationCtr.getUserVerification(req, { identity });
+
+        if (!userVerificationFound.success) {
+            throwResponse({
+                message: 'Lỗi khi tìm kiếm thông tin người dùng.',
+            });
+        }
+
+        if (userVerificationFound.result) {
+            const userVerificationTimeInSeconds = userVerificationFound.result.createdAt.getTime() / 1000;
 
             if (userVerificationTimeInSeconds < TEMP_PASSWORD_RESEND_TIME_IN_SECONDS) {
                 const time = userVerificationCtr.calculateTimeDifference(
                     TEMP_PASSWORD_RESEND_TIME_IN_SECONDS,
-                    foundUserVerification.createdAt,
+                    userVerificationFound.result.createdAt,
                 );
-                throw new GraphQLError(`Vui lòng thử lại sau ${time} giây`, {
-                    extensions: {
-                        code: 429,
-                    },
+                throwResponse({
+                    message: `Vui lòng thử lại sau ${time} giây`,
+                    status: RESPONSE_STATUS.TOO_MANY_REQUESTS,
                 });
             }
         }
@@ -206,50 +201,71 @@ export const authCtr: I_AuthCtr = {
         const tempHashedPassword = await PasswordEncrypt.hashPassword(tempPassword);
 
         const expiresAt = new Date(Date.now() + TEMP_PASSWORD_EXPIRATION_TIME_IN_MS);
-        await userVerificationCtr.createOrUpdate({
-            userId: foundUser.id,
+
+        await userVerificationCtr.createUserVerification(req, {
+            userId: userFound.result.id,
             identity,
             identityType,
             tempPassword,
             expiresAt,
         });
 
-        await userCtr.updateOne({ id: foundUser.id }, { password: tempHashedPassword });
+        await userCtr.updateUser(req, { id: userFound.result.id, password: tempHashedPassword });
 
         const sendTempPasswordResult = await userVerificationCtr.sendTempPassword(identityType, identity, tempPassword);
-        if (sendTempPasswordResult !== 'success')
-            throw new GraphQLError('Gửi mật khẩu tạm thất bại', {
-                extensions: {
-                    code: 500,
-                },
+
+        if (sendTempPasswordResult !== 'success') {
+            throwResponse({
+                message: 'Gửi mật khẩu tạm thất bại',
             });
+        }
 
         return {
             message: 'Gửi mật khẩu tạm cho người dùng thành công',
             success: true,
         };
     },
+    changePassword: async (req, { identityType, identity, oldPassword, newPassword, confirmNewPassword }) => {
+        if (newPassword !== confirmNewPassword) {
+            throwResponse({
+                message: 'Mật khẩu mới và xác nhận không khớp',
+                status: RESPONSE_STATUS.BAD_REQUEST,
+            });
+        }
 
-    handleChangePassword: async (payload) => {
-        if (payload.newPassword !== payload.confirmNewPassword)
-            throw new GraphQLError('Mật khẩu mới và xác nhận không khớp', { extensions: { code: 400 } });
+        const userFound = await userCtr.getUser(req, {
+            $or: [{ email: identity }, { phone: identity }],
+        });
 
-        const foundUser = (await authCtr.handleGetUserOrThrowNotFoundError(
-            payload.identityType,
-            payload.identity,
-        )) as I_User;
+        if (!userFound.success || !userFound.result) {
+            throwResponse({
+                message: 'Người dùng không tồn tại.',
+            });
+        }
 
-        const isPasswordMatch = await PasswordEncrypt.comparePassword(payload.oldPassword, foundUser.password);
-        if (!isPasswordMatch) throw new GraphQLError('Mật khẩu cũ không đúng', { extensions: { code: 400 } });
+        const isPasswordMatch = await PasswordEncrypt.comparePassword(oldPassword, userFound.result.password);
 
-        const newHashedPassword = await PasswordEncrypt.hashPassword(payload.newPassword);
-        await userCtr.updateOne({ [payload.identityType]: payload.identity }, { password: newHashedPassword });
+        if (!isPasswordMatch) {
+            throwResponse({
+                message: 'Mật khẩu cũ không đúng',
+                status: RESPONSE_STATUS.BAD_REQUEST,
+            });
+        }
+
+        const newHashedPassword = await PasswordEncrypt.hashPassword(newPassword);
+
+        const userUpdated = await userCtr.updateUser(req, { id: userFound.result.id, password: newHashedPassword });
+
+        if (!userUpdated.success) {
+            throwResponse({
+                message: 'Đổi mật khẩu thất bại',
+            });
+        }
 
         // TODO: Send email or phone to notify user about password change
         // TODO: Delete user verification document after password change if needed ( case need otp )
 
         return {
-            message: 'Đổi mật khẩu thành công!',
             success: true,
         };
     },

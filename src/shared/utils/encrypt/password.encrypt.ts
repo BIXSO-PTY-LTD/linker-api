@@ -1,9 +1,9 @@
-import * as bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt';
 
 export class PasswordEncrypt {
     public static async hashPassword(password: string): Promise<string> {
         const salt = await bcrypt.genSalt(10);
-        const passwordHash = await bcrypt.hash(password, salt);
+        const passwordHash = await bcrypt.hashSync(password, salt);
         return passwordHash;
     }
 

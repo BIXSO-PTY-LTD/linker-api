@@ -1,18 +1,6 @@
-input Input_Register {
-    fullName: String!
-    email: String!
-    password: String!
-    phone: String
-}
-
-input Input_Login {
-    identify: String!
-    password: String!
-    rememberMe: Boolean
-}
-
 type Type_Response_Auth {
-    success: Boolean
+    success: Boolean!
+    message: String
     token: String
 }
 
@@ -21,21 +9,15 @@ type Query {
 }
 
 type Mutation {
-    register(user: Input_Register!): Type_Response_Auth!
-    login(user: Input_Login!): Type_Response_Auth!
+    register(fullName: String!, email: String!, password: String!, phone: String): Type_Response_Auth!
+    login(identity: String!, password: String!, rememberMe: Boolean): Type_Response_Auth!
     logout: Type_Response_Auth!
-type Mutation {
-    requestPasswordReset(identityType: String!, identity: String!): Response!
+    requestPasswordReset(identityType: String!, identity: String!): Type_Response_Auth!
     changePassword(
         identityType: String!
         identity: String!
         oldPassword: String!
         newPassword: String!
         confirmNewPassword: String!
-    ): Response!
-}
-
-type Response {
-    success: Boolean!
-    message: String
+    ): Type_Response_Auth!
 }

@@ -1,3 +1,2 @@
-export * from './test';
+export * from './user';
 export * from './user-verification.model';
-export * from './user.model';

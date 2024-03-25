@@ -1,42 +1,69 @@
-import { FilterQuery } from 'mongoose';
 import { SendEmailRequest } from 'aws-sdk/clients/ses';
+import { MongooseController } from 'cyberskill/controllers';
+import { I_Return, T_FilterQuery, T_PopulateOptions } from 'cyberskill/typescript';
+import { throwResponse } from 'cyberskill/utils';
 
 import config from '#config';
-import { mongooseCtr } from '#controllers';
 import { UserVerificationModel } from '#models';
-import { T_SmsOptions, sendAutoSMS, sendAutoEmail } from 'src/libs';
-import { E_IDENTITY_TYPE, I_UserVerification } from '#typescript';
+import {
+    E_IdentityType,
+    I_Input_Create_UserVerification,
+    I_Input_Update_UserVerification,
+    I_Request,
+    I_UserVerification,
+} from '#shared/typescript';
+import { T_SmsOptions, sendAutoEmail, sendAutoSMS } from 'src/libs';
 
 interface I_UserVerificationCtr {
-    findOne: (filter: FilterQuery<I_UserVerification>) => Promise<I_UserVerification | null>;
-    createOrUpdate: (model: Partial<I_UserVerification>) => Promise<boolean>;
+    getUserVerification: (
+        _,
+        args: T_FilterQuery<I_UserVerification>,
+        populate?: T_PopulateOptions,
+    ) => Promise<I_Return<I_UserVerification>>;
+    createUserVerification: (_, args: I_Input_Create_UserVerification) => Promise<I_Return<I_UserVerification>>;
+    updateUserVerification: (
+        req: I_Request,
+        args: I_Input_Update_UserVerification,
+    ) => Promise<I_Return<I_UserVerification>>;
     generateTempPassword: () => string;
     sendTempPassword: (identityType: string, identity: string, tempPassword: string) => Promise<string>;
     calculateTimeDifference: (otpResendTime: number, createdAt: Date) => number;
 }
 
-export const userVerificationCtr: I_UserVerificationCtr = {
-    findOne: async (filter: FilterQuery<I_UserVerification>) => {
-        const foundResult = (await mongooseCtr.findOne(UserVerificationModel, filter)) as {
-            success: boolean;
-            result: I_UserVerification;
-        };
-        if (!foundResult.success) return null;
+const mongooseCtr = new MongooseController<I_UserVerification>(UserVerificationModel);
 
-        return foundResult.result;
+export const userVerificationCtr: I_UserVerificationCtr = {
+    getUserVerification: async (_, args, populate) => {
+        return mongooseCtr.findOne(args, {}, {}, populate);
     },
-    createOrUpdate: async (model: Partial<I_UserVerification>) => {
-        const createOrUpdateRes = await mongooseCtr.update(
-            UserVerificationModel,
-            { identity: model.identity, identityType: model.identityType },
-            model,
+    createUserVerification: async (_, args) => {
+        const userVerificationCreated = await mongooseCtr.createOne(args);
+
+        if (!userVerificationCreated.success) {
+            throwResponse({
+                message: userVerificationCreated.message,
+            });
+        }
+
+        return userVerificationCreated;
+    },
+    updateUserVerification: async (req, args) => {
+        const { id, ...rest } = args;
+
+        const userVerificationFound = await userVerificationCtr.getUserVerification(req, { id });
+
+        if (!userVerificationFound.success) {
+            throwResponse({
+                message: 'Không tìm thấy thông tin xác thực người dùng.',
+            });
+        }
+
+        return mongooseCtr.updateOne(
+            { id },
             {
-                new: true,
-                upsert: true,
+                ...rest,
             },
         );
-
-        return !!createOrUpdateRes.success;
     },
     calculateTimeDifference: (otpResendTime: number, createdAt: Date) => otpResendTime - createdAt.getTime() / 1000,
     generateTempPassword: () => {
@@ -45,11 +72,12 @@ export const userVerificationCtr: I_UserVerificationCtr = {
             STAGING: '12345678',
             PRODUCTION: Math.floor(1000 + Math.random() * 9000).toString(),
         };
+
         return TEMP_PASSWORD_BASE_ON_ENV[config.getCurrentEnvironment()];
     },
     sendTempPassword: async (identityType: string, identity: string, tempPassword: string) => {
         switch (identityType) {
-            case E_IDENTITY_TYPE.PHONE: {
+            case E_IdentityType.PHONE: {
                 const phonePayload: T_SmsOptions = {
                     to: identity,
                     body: `Mật khẩu mới của bạn là: ${tempPassword}`,
@@ -58,7 +86,7 @@ export const userVerificationCtr: I_UserVerificationCtr = {
                 if (!isSendTempPasswordSuccess) return 'error';
                 return 'success';
             }
-            case E_IDENTITY_TYPE.EMAIL: {
+            case E_IdentityType.EMAIL: {
                 const emailPayload: SendEmailRequest = {
                     Source: 'no-reply@coach-linker.vn',
                     Destination: {
@@ -79,7 +107,11 @@ export const userVerificationCtr: I_UserVerificationCtr = {
                     },
                 };
                 const isSendTempPasswordSuccess = await sendAutoEmail(emailPayload);
-                if (!isSendTempPasswordSuccess) return 'error';
+
+                if (!isSendTempPasswordSuccess) {
+                    return 'error';
+                }
+
                 return 'success';
             }
             default: {

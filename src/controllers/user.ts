@@ -1,44 +1,17 @@
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import { RESPONSE_STATUS } from 'cyberskill/constants';
 import { MongooseController } from 'cyberskill/controllers';
-import { T_FilterQuery, T_PopulateOptions } from 'cyberskill/typescript';
+import { I_Input_Filters, T_FilterQuery, T_PopulateOptions } from 'cyberskill/typescript';
 import { throwResponse } from 'cyberskill/utils';
 
-import { userModel } from '#models';
-import {
-    I_Input_Create_User,
-    I_Input_Delete_User,
-    I_Input_Filters,
-    I_Input_Update_User,
-    I_Request,
-    I_User,
-} from '#shared/typescript';
+import { UserModel } from '#models';
+import { I_Input_Create_User, I_Input_Delete_User, I_Input_Update_User, I_Request, I_User } from '#shared/typescript';
 
-const mongooseCtr = new MongooseController<I_User>(userModel);
+const mongooseCtr = new MongooseController<I_User>(UserModel);
 
 export const userCtr = {
     getUser: async (_, args: T_FilterQuery<I_User>, populate?: T_PopulateOptions) => {
-        return mongooseCtr.findOne(args, null, {}, populate);
-interface I_UserCtr {
-    getUser: (args: T_UserArgs, populate?: string | object) => Promise<I_User | null>;
-    updateOne: (args: T_UserArgs, update: T_UserArgs) => Promise<boolean>;
-}
-
-export const userCtr: I_UserCtr = {
-    getUser: async (args, populate) => {
-        const getUserRes = (await mongooseCtr.findOne(UserModel, args, null, {}, populate)) as {
-            success: boolean;
-            result: I_User;
-        };
-
-        if (!getUserRes.success)
-            throw new GraphQLError('Failed to get user', {
-                extensions: {
-                    code: 500,
-                },
-            });
-
-        return getUserRes.result;
+        return mongooseCtr.findOne(args, {}, {}, populate);
     },
     getUsers: async (_, args: I_Input_Filters) => {
         const { query = {}, ...options } = args;
@@ -67,7 +40,7 @@ export const userCtr: I_UserCtr = {
 
         if (!userCreated.success) {
             throwResponse({
-                message: userCreated?.message,
+                message: userCreated.message,
             });
         }
 

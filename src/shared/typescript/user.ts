@@ -8,10 +8,8 @@ export interface I_User extends I_GenericDocument {
 }
 
 export interface I_Input_Get_User {
-    user: {
-        id: string;
-        populate?: T_PopulateOptions;
-    };
+    id: string;
+    populate?: T_PopulateOptions;
 }
 
 export interface I_Input_Create_User {
@@ -23,8 +21,9 @@ export interface I_Input_Create_User {
 
 export interface I_Input_Update_User {
     id: string;
-    fullName: string;
-    phone: string;
+    password?: string;
+    fullName?: string;
+    phone?: string;
 }
 
 export interface I_Input_Delete_User {
