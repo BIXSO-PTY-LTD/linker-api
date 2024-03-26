@@ -1,23 +1,80 @@
-const config: any = {
+interface I_SMSConfig {
+    ACCOUNT_SID: string;
+    AUTH_TOKEN: string;
+    SENDER: string;
+}
+
+interface I_AWSSESConfig {
+    API_VERSION: string;
+    ACCESS_KEY_ID: string;
+    SECRET_ACCESS_KEY: string;
+    REGION: string;
+}
+
+interface I_SessionConfig {
+    COLLECTION_NAME: string;
+    SECRET: string;
+    MAX_AGE: number;
+    TTL: number;
+}
+
+interface I_DatabaseCollections {
+    USER: string;
+    USER_VERIFICATION: string;
+}
+
+interface I_Config {
+    IS_DEV: boolean;
+    IS_STAG: boolean;
+    IS_PROD: boolean;
+    BODY_PARSER_LIMIT: string;
+    HOST_NAME: string;
+    PORT: number;
+    GRAPHQL_ENDPOINT: string;
+    RESTAPI_ENDPOINT: string;
+    MONGO_PORT: number;
+    MONGO_NAME: string;
+    MONGO_USERNAME: string;
+    MONGO_PASSWORD: string;
+    SESSION: I_SessionConfig;
+    WS_PORT: number;
+    SECRET: string;
+    UPLOAD_FOLDER: string;
+    DATABASE_COLLECTIONS: I_DatabaseCollections;
+    SMS: { TWILIO: I_SMSConfig };
+    AWS: { SES: I_AWSSESConfig };
+    getCurrentEnvironment: () => 'PRODUCTION' | 'STAGING' | 'DEVELOPMENT';
+    USER_PORT: string;
+    API_PORT: string;
+    WEB_PROTOCOL: string;
+    API_HOST_NAME: string;
+    USER_HOST_NAME: string;
+    USER_HTTP_URI: string;
+    RESTAPI_HTTP_URI: string;
+    CORS_WHITELIST: string[];
+    MONGO_URI: string;
+}
+
+const config: I_Config = {
     IS_DEV: process.env.NODE_ENV === 'development',
     IS_STAG: process.env.NODE_ENV === 'production' && process.env.ENV === 'staging',
     IS_PROD: process.env.NODE_ENV === 'production' && process.env.ENV === 'production',
     BODY_PARSER_LIMIT: process.env.BODY_PARSER_LIMIT || '50mb',
     HOST_NAME: process.env.HOST_NAME || 'localhost',
-    PORT: process.env.PORT || 8000,
+    PORT: parseInt(process.env.PORT || '8000', 10),
     GRAPHQL_ENDPOINT: process.env.GRAPHQL_ENDPOINT || '/graphql',
     RESTAPI_ENDPOINT: process.env.RESTAPI_ENDPOINT || '/rest',
-    MONGO_PORT: process.env.DB_PORT || 27017,
+    MONGO_PORT: parseInt(process.env.DB_PORT || '27017', 10),
     MONGO_NAME: process.env.DB_NAME || 'linker-api',
     MONGO_USERNAME: process.env.MONGO_USERNAME || '',
     MONGO_PASSWORD: process.env.MONGO_PASSWORD || '',
-    SESSION: process.env.SESSION || {
+    SESSION: {
         COLLECTION_NAME: 'sessions',
         SECRET: 'linker-api-session',
         MAX_AGE: 24 * 60 * 60 * 1000, // 24h
         TTL: 24 * 60 * 60,
     },
-    WS_PORT: process.env.WS_PORT || 7999,
+    WS_PORT: parseInt(process.env.WS_PORT || '7999', 10),
     SECRET: process.env.SECRET || 'ixN0-Vqnj9JAQzE(u*Z59xj#8ZKujr%w', // 32 chars required
     UPLOAD_FOLDER: process.env.UPLOAD_FOLDER || 'bixso',
     DATABASE_COLLECTIONS: {
@@ -39,6 +96,18 @@ const config: any = {
             REGION: process.env.AWS_REGION || '',
         },
     },
+    getCurrentEnvironment: function (): 'PRODUCTION' | 'STAGING' | 'DEVELOPMENT' {
+        throw new Error('Function not implemented.');
+    },
+    USER_PORT: '',
+    API_PORT: '',
+    WEB_PROTOCOL: '',
+    API_HOST_NAME: '',
+    USER_HOST_NAME: '',
+    USER_HTTP_URI: '',
+    RESTAPI_HTTP_URI: '',
+    CORS_WHITELIST: [],
+    MONGO_URI: '',
 };
 
 config.getCurrentEnvironment = () => {

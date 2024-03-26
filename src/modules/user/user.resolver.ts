@@ -10,7 +10,7 @@ import {
 
 import { I_Context } from '#shared/typescript';
 import { userCtr } from './user.controller';
-import { I_User } from './user.types';
+import { I_Input_Create_User, I_Input_Delete_User, I_Input_Update_User, I_User } from './user.types';
 
 interface I_UserResolver {
     Query: {
@@ -22,9 +22,9 @@ interface I_UserResolver {
         ) => Promise<I_Return<T_PaginateResult<I_User>>>;
     };
     Mutation: {
-        createUser: (_, args: I_Input_CreateOne<I_User>, context: I_Context) => Promise<I_Return<I_User>>;
-        updateUser: (_, args: I_Input_UpdateOne<I_User>, context: I_Context) => Promise<I_Return<I_User>>;
-        deleteUser: (_, args: I_Input_DeleteOne<I_User>, context: I_Context) => Promise<I_Return<I_User>>;
+        createUser: (_, args: I_Input_CreateOne<I_Input_Create_User>, context: I_Context) => Promise<I_Return<I_User>>;
+        updateUser: (_, args: I_Input_UpdateOne<I_Input_Update_User>, context: I_Context) => Promise<I_Return<I_User>>;
+        deleteUser: (_, args: I_Input_DeleteOne<I_Input_Delete_User>, context: I_Context) => Promise<I_Return<I_User>>;
     };
 }
 
